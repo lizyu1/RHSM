@@ -29,6 +29,15 @@ def main(hostname):
     id = d["id"]
     print id
 
+    try:
+	delete_subscription = requiests.delete('https://url/api/v2/hosts/%s/subscriptions' %id, auth=(USERNAME, PASSWORD), verify=SSL_VERIFY)
+	print delete_subscription.text
+	if delete_subscription.status_code == 200:
+	    print "Subscription successfully removed"
+    except:
+	pass
+
+
 if __name__ == "__main__":
   if len(sys.argv) == 2:
         main(sys.argv[1])
