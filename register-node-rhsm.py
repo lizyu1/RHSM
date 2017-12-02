@@ -15,21 +15,22 @@ USERNAME = "user"
 PASSWORD = "passwd"
 
 SSL_VERIFY = False
-headers = {'Content-type': 'application/Json', 'Accept': 'text/plain'}
-payload = {
- 'name' : 'hostname',
- 'lifecycle_environment_id': 1,
- 'content_view_id': 12,
-}
 
 def main(hostname):
 
     r = requests.get('https://url/api/v2/hosts/{0}'.format(hostname), auth=(USERNAME, PASSWORD), verify=SSL_VERIFY)
-
 #    print r.text
     d = json.loads(r.content)
-    id = d["id"]
-    print id
+    headers = {'Content-type': 'application/Json', 'Accept': 'text/plain'}
+    payload = {}
+    payload['name'] = hostname
+    payload['lifecycle_environment_id'] = 1
+    os = d["operatingsystem_name"]
+    if os == "RedHat 7.3":
+        payload['content_view_id']= 12
+    else:
+        payload['content_view_id']= 13
+
 
     try:
         add_subscription = requests.post('https://url/api/v2/hosts/subscriptions', headers=headers, data=json.dumps(payload), auth=(USERNAME, PASSWORD), verify=SSL_VERIFY)
