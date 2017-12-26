@@ -3,6 +3,7 @@
 
 import json
 import sys
+import decrypt
 
 
 try:
@@ -11,31 +12,20 @@ except ImportError:
     print "Please install the python-requests module."
     sys.exit(-1)
 
-USERNAME = "username"
-PASSWORD = "password"
-# Ignore SSL for now
-SSL_VERIFY = False
+USERNAME = "admin"
+PASSWORD = decrypt.decode("jfkldergdlfgkdlfkgjdlsidfgk20o="
+SSL_VERIFY = "/etc/pki/tls/certs/my_SHA256.pem"
 
 
 def main(hostname):
-    """
-    Performs a GET using the passed URL location
-    """
 
     r = requests.get('https://url/api/v2/hosts/{0}'.format(hostname), auth=(USERNAME, PASSWORD), verify=SSL_VERIFY)
 
-    print r.text
-    d = json.loads(r.content)
-    id = d["id"]
-    print id
-
-    try:
-	delete_subscription = requiests.delete('https://url/api/v2/hosts/%s/subscriptions' %id, auth=(USERNAME, PASSWORD), verify=SSL_VERIFY)
-	print delete_subscription.text
-	if delete_subscription.status_code == 200:
-	    print "Subscription successfully removed"
-    except:
-	pass
+    if not "Resoure host not found by id" in str(r.text):
+        d = json.loads(r.content)
+        print "Subscription status is {0}".format(d["subscription_status_label"])
+    else:
+        print "Host not found"
 
 
 if __name__ == "__main__":

@@ -3,6 +3,7 @@
 
 import json
 import sys
+import decrypt
 
 
 try:
@@ -11,10 +12,9 @@ except ImportError:
     print "Please install the python-requests module."
     sys.exit(-1)
 
-USERNAME = "user"
-PASSWORD = "passwd"
-
-SSL_VERIFY = False
+USERNAME = "admin"
+PASSWORD = decrypt.decode("gUdlkslkQlkfglks20k=df=")
+SSL_VERIFY = "/etc/pki/tls/certs/mycert_SHA256.pem"
 
 def main(hostname):
 
@@ -35,10 +35,10 @@ def main(hostname):
     try:
         add_subscription = requests.post('https://url/api/v2/hosts/subscriptions', headers=headers, data=json.dumps(payload), auth=(USERNAME, PASSWORD), verify=SSL_VERIFY)
         print add_subscription.text
-        if add_subscription.status_code == 200:
+        if add_subscription.status_code.ok:
             print "Successful subscription"
     except:
-        pass
+        print "Failed to add subscription {0}".format(hostname)
 
 if __name__ == "__main__":
     if len(sys.argv) == 2:
