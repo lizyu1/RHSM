@@ -13,7 +13,7 @@ except ImportError:
     sys.exit(-1)
 
 USERNAME = "admin"
-PASSWORD = decrypt.decode("jfkldergdlfgkdlfkgjdlsidfgk20o="
+PASSWORD = decrypt.decode("jfkldergdlfgkdlfkgjdlsidfgk20o=")
 SSL_VERIFY = "/etc/pki/tls/certs/my_SHA256.pem"
 
 
