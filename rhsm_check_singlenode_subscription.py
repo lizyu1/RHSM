@@ -20,7 +20,6 @@ LON_PASSWORD = decrypt.decode("xxxxx")
 SYD_SAT = "https://sydney.liz.com"
 NYC_SAT = "https://newyork.liz.com"
 LON_SAT = "https://london.liz.com"
-SUB_STR = '{}/api/v2/hosts/{/api/v2/hosts/{}'
 SSL_VERIFY = "/etc/pki/tls/certs/my.pem"
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
