@@ -10,23 +10,25 @@ History:
   15-5-2018 liz Register the host to Redhat Satellite server New York
   16-5-2018 liz Add 3rd command line arguement of major RHEL version integer, e.g. 6 or 7
   12-07-2018 liz import argparse
+  24-07-2018 liz add logging
 """
 
 import json
 import sys
 import argparse
+import logging
+import requests
 import decrypt
+
 PARSER = argparse.ArgumentParser()
 PARSER.add_argument("hostname", help="myhost")
 PARSER.add_argument("RHEL_major_release_number", help="6 or 7")
-
-
-try:
-    import requests
-except ImportError:
-    print "Please install the python-requests module."
-    sys.exit(-1)
-
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.DEBUG)
+HANDLER = logging.FileHandle('/var/log/rhss.log')
+FORMATTER = logger.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+HANDLER.setFormatter(FORMATTER)
+LOGGER.addHandler(HANDLER)
 SYD_USERNAME = "admin"
 SYD_PASSWORD = decrypt.decode("xxxxx")
 NYC_USERNAME = "admin"
@@ -109,11 +111,13 @@ def main(hostname, osname):
                                          auth=(auth[1], auth[2]), verify=SSL_VERIFY)
         print add_subscription.text
         if add_subscription.ok:
-            print "Successful subscription"
+            print "Successful added the subscription for {}".format(hostname)
+            LOGGER.info( "Successful added the subscription for %s", hostname)
     except requests.exceptions.RequestException as error:
         print "Failed to add subscription {}".format(hostname)
-        print error
-        print result.text
+        LOGGER.warning("Failed to add subscription %s", hostname)
+        LOGGER.warning(error)
+        LOGGER.warning(result.text)
 
 
 if __name__ == "__main__":

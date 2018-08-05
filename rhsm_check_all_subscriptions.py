@@ -6,6 +6,7 @@
  9-1-2018 liz Added email function
  10-7-2018 liz Added New York and London Satellite servers
  12-7-2018 liz Added create Remedy ticket function
+ 24-7-2018 liz Added logger function
 """
 
 import json
@@ -13,15 +14,10 @@ import sys
 import os
 import smtplib
 from email.mime.text import MIMEText
+import logging
+import requests
 import rhsm_unregister
 import decrypt
-
-try:
-    import requests
-except ImportError:
-    print "Please install the python-requests module."
-    sys.exit(-1)
-
 
 SYD_USERNAME = "admin"
 SYD_PASSWORD = decrypt.decode("xxxxx")
@@ -43,6 +39,12 @@ NYC_ORG_ID = "3"
 LON_ORG_ID = "3"
 SSL_VERIFY = "/etc/pki/tls/certs/my.pem"
 SUB_STR = "/katello/api/organizations/{}/subscriptions/{}"
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.DEBUG)
+HANDLER = logging.FileHandle('/var/log/rhss.log')
+FORMATTER = logger.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+HANDLER.setFormatter(FORMATTER)
+LOGGER.addHandler(HANDLER)
 
 
 def dns(hostname):
@@ -52,9 +54,11 @@ def dns(hostname):
     """
     if os.system('nslookup ' + hostname + '>/dev/null') == 256:
         print "{} does not exist in DNS, removing its subscription".format(hostname)
+	LOGGER.wanring("%s does not exist in DNS, removing uts subscription", hostname)
         rhsm_unregister.main(hostname)
     else:
         print "{0} is in DNS".format(hostname)
+        LOGGER.info("%s is in DNS", hostname)
 
 
 def get_license_id(sat_server):
@@ -144,7 +148,9 @@ def sendmail_if_required(sat_server, license_counts, host_count):
         smtp.quit()
 
     print "Available licenses for Physical are {}/{}".format(physical_available, physical_total)
+    LOGGER.info("Available licenses for Physical are %s/%s",physical_available, physical_total)
     print "Available licenses for Virtual are {}/{}".format(virtual_available, virtual_total)
+    LOGGER.info("Available licenses for Virtual are %s/%s", virtual_available, virtual_total)
 
 
 def check_total_hosts_registered(sat_server, sat_server_username, sat_server_password):
@@ -167,6 +173,7 @@ def check_total_hosts_registered(sat_server, sat_server_username, sat_server_pas
             break
         page += 1
     print "Number of hosts registered are {}".format(host_count)
+    LOGGER.info("Number of hosts registered are %s", host_count)
     return host_count
 
 

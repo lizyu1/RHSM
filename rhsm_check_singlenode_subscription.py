@@ -3,17 +3,13 @@
 18-12-2017 liz script returns the subscription status of a single host
 12-07-2018 liz added the New York and London Satellite server
 13-07-2018 liz added the function to handle hostname with or without .liz.com suffix
+24-07-2018 liz added the logging function
 """
 import json
 import sys
+import logging
+import requests
 import decrypt
-
-try:
-    import requests
-except ImportError:
-    print "Please install the python-requests module."
-    sys.exit(-1)
-
 
 SYD_USERNAME = "admin"
 SYD_PASSWORD = decrypt.decode("xxxxx")
@@ -26,6 +22,12 @@ NYC_SAT = "https://newyork.liz.com"
 LON_SAT = "https://london.liz.com"
 SUB_STR = '{}/api/v2/hosts/{/api/v2/hosts/{}'
 SSL_VERIFY = "/etc/pki/tls/certs/my.pem"
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.DEBUG)
+HANDLER = logging.FileHandle('/var/log/rhss.log')
+FORMATTER = logger.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+HANDLER.setFormatter(FORMATTER)
+LOGGER.addHandler(HANDLER)
 
 
 def which_sat(hostname):
@@ -78,11 +80,17 @@ def main(hostname):
 
         if "Resource host not found by id" not in str(response.text):
             data = json.loads(response.content)
-            print "Subscription status is {0}".format(data["subscription_status_label"])
+	    if  "subscription_status_label" in data:
+                print "{} subscription status is {}".format(hostname, data["subscription_status_label"])
+                LOGGER.info ("%s subscription status is %s".hostname, data["subscription_status_label"])
+	    else:
+	        print "{} exists in Satellite server with no subscription, please remove it".format(hostname)
+	        LOGGER.warn("%s exists in Satellite server with no subscription, please remove it", hostname)
             break
         else:
             if count == 1:
                 print "{} has not yet registered to Redhat Satellite server".format(hostname)
+                LOGGER.warning("%s has not yet registered to Redhat Satellite server", hostname)
                 return
 
             hostname = validate_hostname(hostname)

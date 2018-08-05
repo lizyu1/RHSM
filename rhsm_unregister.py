@@ -10,21 +10,24 @@ History:
   17-05-2018 liz    Add functions to un-register host in New York Red Hat Satellite Server
   11-07-2018 liz    Add functions to handle hostname and hostname.liz.com
   12-07-2018 liz    Import argparse
+  24-07-2018 liz    Import logging
 """
 
 import json
 import sys
 import argparse
+import logging
+import requests
 import decrypt
+
 PARSER = argparse.ArgumentParser()
 PARSER.add_argument("hostname", help="usydind12345")
-
-try:
-    import requests
-except ImportError:
-    print "Please install the python-requests module."
-    sys.exit(-1)
-
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.DEBUG)
+HANDLER = logging.FileHandle('/var/log/rhss.log')
+FORMATTER = logger.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+HANDLER.setFormatter(FORMATTER)
+LOGGER.addHandler(HANDLER)
 SYD_USERNAME = "admin"
 SYD_PASSWORD = decrypt.decode("xxxxx")
 NYC_USERNAME = "admin"
@@ -96,24 +99,28 @@ def main(hostname):
         else:
             if count == 1:
                 print "{} not registered to Redhat Satellite server {}".format(hostname, auth[0])
+                LOGGER.info("%s not registered to Redhat Satellite server %s", hostname, auth[0])
                 return
 
             hostname = validate_hostname(hostname)
 
     try:
-        delete_subscription = requests.delete(SUB_STR.format(auth[0],ident),
+        delete_subscription = requests.delete(SUB_STR.format(auth[0], ident),
                                               auth=(auth[1], auth[2]), verify=SSL_VERIFY)
         print delete_subscription.text
         if delete_subscription.ok:
-            print "Delete subscription successful"
+            print "Successfully deleted the subscription for {}".format(hostname)
+            LOGGER.info("Successfully deleted the subscription for %s", hostname)
         delete_host = requests.delete('{}/api/v2/hosts/{}'.format(auth[0], ident),
                                       auth=(auth[1], auth[2]), verify=SSL_VERIFY)
         if delete_host.ok:
-            print "Delete host from Satellite server successful"
+            print "Successfully deleted the host {} from Satellite server".format(hostname)
+            LOGGER.info("Successfully deleted the host %s from Satellite server", hostname)
     except requests.exceptions.RequestException as error:
-        print "Unable to delete subscription"
-        print error
-        print delete_subscription, delete_host
+        print "Unable to delete subscription for {}".format(hostname)
+        LOGGER.info("Unable to delete subscription for %s", hostname)
+        LOGGER.warning(error)
+        LOGGER.warning(delete_subscription, delete_host)
 
 
 if __name__ == "__main__":
